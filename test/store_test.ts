@@ -244,6 +244,7 @@ describe('Store', () => {
     });
 
     it('emits ReturnProduct event', async () => {
+      // This is a comment
       const id = 0;
       const price = ethers.utils.parseEther('0.1');
 
