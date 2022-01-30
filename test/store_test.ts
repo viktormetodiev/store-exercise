@@ -65,19 +65,33 @@ describe('Store', () => {
 
   describe('setProductQuantity', () => {
     it('only owner can set product quantity', async () => {
+      await store.addProduct('scissors', ethers.utils.parseEther('0.1'), 1);
 
+      await store.setProductQuantity(0, 3);
+      await expect(
+        store.connect(addr1).setProductQuantity(0, 3),
+      ).revertedWith('owner');
     });
 
     it('product quantity is updated', async () => {
+      await store.addProduct('scissors', ethers.utils.parseEther('0.1'), 1);
+      await store.setProductQuantity(0, 3);
 
+      const details = await store.getProduct(0);
+      expect(details._quantity).to.equal(3);
     });
 
     it('cannot update non-existent product quantity', async () => {
-
+      await store.addProduct('scissors', ethers.utils.parseEther('0.1'), 1);
+      await expect(store.setProductQuantity(1, 3)).revertedWith('product does not exist');
     });
 
     it('emits SetProductQuantity event', async () => {
+      await store.addProduct('scissors', ethers.utils.parseEther('0.1'), 1);
 
+      await expect(store.setProductQuantity(0, 3))
+        .emit(store, 'SetProductQuantity')
+        .withArgs(0, 3);
     });
   });
 
