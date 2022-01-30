@@ -34,9 +34,9 @@ describe('Store', () => {
       await store.addProduct(name, price, quantity);
 
       const details = await store.getProduct(id);
-      expect(details._name).to.equal(name);
-      expect(details._price).to.equal(price);
-      expect(details._quantity).to.equal(quantity);
+      expect(details._name).equal(name);
+      expect(details._price).equal(price);
+      expect(details._quantity).equal(quantity);
     });
 
     it('cannot add product with no name', async () => {
@@ -93,7 +93,7 @@ describe('Store', () => {
       await store.setProductQuantity(id, quantity);
 
       const details = await store.getProduct(id);
-      expect(details._quantity).to.equal(quantity);
+      expect(details._quantity).equal(quantity);
     });
 
     it('cannot update non-existent product quantity', async () => {
@@ -125,7 +125,7 @@ describe('Store', () => {
       await store.buyProduct(id, { value: price });
 
       const details = await store.getProduct(id);
-      expect(details._quantity).to.equal(0);
+      expect(details._quantity).equal(0);
       expect(await store.provider.getBalance(store.address)).equal(price);
     });
 
@@ -187,19 +187,74 @@ describe('Store', () => {
 
   describe('returnProduct', () => {
     it('product is returned and price refunded', async () => {
+      const id = 0;
+      const price = ethers.utils.parseEther('0.1');
+      const initialBuyerBalance = await store.provider.getBalance(owner.address);
 
+      await store.addProduct('scissors', price, 1);
+      await store.buyProduct(id, { value: price });
+      await store.returnProduct(id);
+
+      const finalBuyerBalance = await store.provider.getBalance(owner.address);
+
+      const details = await store.getProduct(id);
+
+      expect(details._quantity).equal(1);
+      expect(initialBuyerBalance).equal(finalBuyerBalance);
+    });
+
+
+    it('refunded products cannot be rebought', async () => {
+      const id = 0;
+      const price = ethers.utils.parseEther('0.1');
+
+      await store.addProduct('scissors', price, 1);
+      await store.buyProduct(id, { value: price });
+      await store.returnProduct(id);
+      await expect(store.buyProduct(id, { value: price }))
+        .revertedWith('cannot be bought after refund');
+    });
+
+    it('cannot return product that does not exist', async () => {
+      await store.addProduct('scissors', ethers.utils.parseEther('0.1'), 1);
+      await expect(store.returnProduct(1))
+        .revertedWith('product does not exist');
     });
 
     it('cannot return product not bought', async () => {
-
+      await store.addProduct('scissors', ethers.utils.parseEther('0.1'), 1);
+      await expect(store.returnProduct(0))
+        .revertedWith('product not bought');
     });
 
     it('cannot return product after 100 blocks', async () => {
+      const id = 0;
+      const price = ethers.utils.parseEther('0.1');
 
+      await store.addProduct('scissors', price, 1);
+      await store.buyProduct(id, { value: price });
+
+      const promises = [];
+
+      for (let i = 0; i < 100; i++) {
+        promises.push(ethers.provider.send('evm_mine', []));
+      }
+
+      await Promise.all(promises);
+
+      await expect(store.returnProduct(id))
+        .revertedWith('return period is over');
     });
 
     it('emits ReturnProduct event', async () => {
+      const id = 0;
+      const price = ethers.utils.parseEther('0.1');
 
+      await store.addProduct('scissors', price, 1);
+      await store.buyProduct(id, { value: price });
+      await expect(store.returnProduct(id))
+        .emit(store, 'ReturnProduct')
+        .withArgs(id, owner.address);
     });
   });
 
@@ -229,9 +284,7 @@ describe('Store', () => {
       await store.addProduct('knife', price, 1);
       await store.addProduct('sword', price, 1);
 
-      await store.buyProduct(1, {
-        value: price,
-      });
+      await store.buyProduct(1, { value: price });
 
       const products = await store.availableProducts();
 
@@ -247,9 +300,9 @@ describe('Store', () => {
       await store.addProduct('scissors', ethers.utils.parseEther('0.1'), 3);
 
       const details = await store.getProduct(0);
-      expect(details._name).to.equal('scissors');
-      expect(details._price).to.equal(ethers.utils.parseEther('0.1'));
-      expect(details._quantity).to.equal(3);
+      expect(details._name).equal('scissors');
+      expect(details._price).equal(ethers.utils.parseEther('0.1'));
+      expect(details._quantity).equal(3);
     });
 
     it('reverts for non-existent product', async () => {
