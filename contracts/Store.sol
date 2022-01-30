@@ -87,10 +87,29 @@ contract Store is Ownable {
     emit BuyProduct(_id, msg.sender);
   }
 
-  function returnProduct(uint _id) external {}
+  function returnProduct(uint _id)
+    external
+  {
+
+  }
 
   function availableProducts() external view returns (uint[] memory) {
-    return new uint[](1);
+    uint count;
+    for (uint i; i < productNames.length; i++) {
+      if (!productPurchased[i][msg.sender] && products[i].quantity > 0) {
+        count++;
+      }
+    }
+
+    uint currIndex;
+    uint[] memory result = new uint[](count);
+    for (uint i; i < productNames.length; i++) {
+      if (!productPurchased[i][msg.sender] && products[i].quantity > 0) {
+        result[currIndex++] = i;
+      }
+    }
+
+    return result;
   }
 
   function getProduct(uint _id)

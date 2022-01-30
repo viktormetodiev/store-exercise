@@ -205,11 +205,40 @@ describe('Store', () => {
 
   describe('availableProducts', () => {
     it('only available product ids are returned', async () => {
+      const price = ethers.utils.parseEther('0.1');
 
+      await store.addProduct('scissors', price, 1);
+      await store.addProduct('chainsaw', price, 1);
+      await store.addProduct('knife', price, 1);
+      await store.addProduct('sword', price, 1);
+
+      const products = await store.availableProducts();
+
+      expect(products).length(4);
+      expect(products[0]).equal(0);
+      expect(products[1]).equal(1);
+      expect(products[2]).equal(2);
+      expect(products[3]).equal(3);
     });
 
     it('already bought product ids are not returned', async () => {
+      const price = ethers.utils.parseEther('0.1');
 
+      await store.addProduct('scissors', price, 1);
+      await store.addProduct('chainsaw', price, 1);
+      await store.addProduct('knife', price, 1);
+      await store.addProduct('sword', price, 1);
+
+      await store.buyProduct(1, {
+        value: price,
+      });
+
+      const products = await store.availableProducts();
+
+      expect(products).length(3);
+      expect(products[0]).equal(0);
+      expect(products[1]).equal(2);
+      expect(products[2]).equal(3);
     });
   });
 
