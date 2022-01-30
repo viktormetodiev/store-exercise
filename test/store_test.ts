@@ -189,18 +189,15 @@ describe('Store', () => {
     it('product is returned and price refunded', async () => {
       const id = 0;
       const price = ethers.utils.parseEther('0.1');
-      const initialBuyerBalance = await store.provider.getBalance(owner.address);
 
       await store.addProduct('scissors', price, 1);
       await store.buyProduct(id, { value: price });
       await store.returnProduct(id);
 
-      const finalBuyerBalance = await store.provider.getBalance(owner.address);
-
       const details = await store.getProduct(id);
 
       expect(details._quantity).equal(1);
-      expect(initialBuyerBalance).equal(finalBuyerBalance);
+      expect(await store.provider.getBalance(store.address)).equal(0);
     });
 
 
@@ -212,7 +209,7 @@ describe('Store', () => {
       await store.buyProduct(id, { value: price });
       await store.returnProduct(id);
       await expect(store.buyProduct(id, { value: price }))
-        .revertedWith('cannot be bought after refund');
+        .revertedWith('product already bought');
     });
 
     it('cannot return product that does not exist', async () => {
