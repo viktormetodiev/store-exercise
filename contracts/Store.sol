@@ -70,6 +70,7 @@ contract Store is Ownable {
   }
 
   function buyProduct(uint _id) external payable {}
+  
   function returnProduct(uint _id) external {}
 
   function availableProducts() external view returns (uint[] memory) {

@@ -26,12 +26,17 @@ describe('Store', () => {
     });
 
     it('product is added with quantity', async () => {
-      await store.addProduct('scissors', ethers.utils.parseEther('0.1'), 3);
+      const id = 0;
+      const name = 'scissors';
+      const price = ethers.utils.parseEther('0.1');
+      const quantity = 3;
 
-      const details = await store.getProduct(0);
-      expect(details._name).to.equal('scissors');
-      expect(details._price).to.equal(ethers.utils.parseEther('0.1'));
-      expect(details._quantity).to.equal(3);
+      await store.addProduct(name, price, quantity);
+
+      const details = await store.getProduct(id);
+      expect(details._name).to.equal(name);
+      expect(details._price).to.equal(price);
+      expect(details._quantity).to.equal(quantity);
     });
 
     it('cannot add product with no name', async () => {
@@ -57,9 +62,14 @@ describe('Store', () => {
     });
 
     it('emits AddProduct event', async () => {
-      await expect(store.addProduct('chainsaw', ethers.utils.parseEther('0.1'), 3))
+      const id = 0;
+      const name = 'chainsaw';
+      const price = ethers.utils.parseEther('0.1');
+      const quantity = 3;
+
+      await expect(store.addProduct(name, price, quantity))
         .emit(store, 'AddProduct')
-        .withArgs(0, 'chainsaw', ethers.utils.parseEther('0.1'), 3);
+        .withArgs(id, name, price, quantity);
     });
   });
 
@@ -74,11 +84,16 @@ describe('Store', () => {
     });
 
     it('product quantity is updated', async () => {
-      await store.addProduct('scissors', ethers.utils.parseEther('0.1'), 1);
-      await store.setProductQuantity(0, 3);
+      const id = 0;
+      const name = 'chainsaw';
+      const price = ethers.utils.parseEther('0.1');
+      const quantity = 3;
 
-      const details = await store.getProduct(0);
-      expect(details._quantity).to.equal(3);
+      await store.addProduct(name, price, 1);
+      await store.setProductQuantity(id, quantity);
+
+      const details = await store.getProduct(id);
+      expect(details._quantity).to.equal(quantity);
     });
 
     it('cannot update non-existent product quantity', async () => {
@@ -87,37 +102,86 @@ describe('Store', () => {
     });
 
     it('emits SetProductQuantity event', async () => {
-      await store.addProduct('scissors', ethers.utils.parseEther('0.1'), 1);
+      const id = 0;
+      const name = 'chainsaw';
+      const price = ethers.utils.parseEther('0.1');
+      const quantity = 3;
 
-      await expect(store.setProductQuantity(0, 3))
+      await store.addProduct(name, price, 1);
+
+      await expect(store.setProductQuantity(id, quantity))
         .emit(store, 'SetProductQuantity')
-        .withArgs(0, 3);
+        .withArgs(id, quantity);
     });
   });
 
   describe('buyProduct', () => {
     it('product is bought', async () => {
+      const id = 0;
+      const price = ethers.utils.parseEther('0.1');
 
+      await store.addProduct('scissors', price, 1);
+
+      await store.buyProduct(id, { value: price });
+
+      const details = await store.getProduct(id);
+      expect(details._quantity).to.equal(0);
+      expect(store.provider.getBalance(store.address)).equal(price);
+    });
+
+    it('cannot buy product if product does not exist', async () => {
+      await expect(store.buyProduct(0, { value: ethers.utils.parseEther('1') }))
+        .revertedWith('product does not exist');
     });
 
     it('cannot buy product if msg.value > price', async () => {
+      const id = 0;
 
+      await store.addProduct('scissors', ethers.utils.parseEther('0.1'), 1);
+
+      await expect(store.buyProduct(id, { value: ethers.utils.parseEther('1') }))
+        .revertedWith('amount sent must equal product price');
     });
 
     it('cannot buy product if msg.value < price', async () => {
+      const id = 0;
 
+      await store.addProduct('scissors', ethers.utils.parseEther('0.1'), 1);
+
+      await expect(store.buyProduct(id, { value: ethers.utils.parseEther('0.01') }))
+        .revertedWith('amount sent must equal product price');
     });
 
     it('cannot buy same product twice', async () => {
+      const id = 0;
+      const price = ethers.utils.parseEther('0.1');
 
+      await store.addProduct('scissors', price, 2);
+      await store.buyProduct(id, { value: price });
+
+      await expect(store.buyProduct(id, { value: price }))
+        .revertedWith('product already bought');
     });
 
     it('cannot buy out-of-stock product', async () => {
+      const id = 0;
+      const price = ethers.utils.parseEther('0.1');
 
+      await store.addProduct('scissors', price, 1);
+      await store.buyProduct(id, { value: price });
+
+      await expect(store.connect(addr1).buyProduct(id, { value: price }))
+        .revertedWith('product out of stock');
     });
 
     it('emits BuyProduct event', async () => {
+      const id = 0;
+      const price = ethers.utils.parseEther('0.1');
 
+      await store.addProduct('scissors', price, 1);
+      await expect(store.buyProduct(id, { value: price }))
+        .emit(store, 'BuyProduct')
+        .withArgs(id, price);
     });
   });
 
