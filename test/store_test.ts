@@ -34,17 +34,17 @@ describe('Store', () => {
 
     it('cannot add product with no name', async () => {
       await expect(store.addProduct('', ethers.utils.parseEther('0.1'), 1))
-        .revertedWith('empty name');
+        .revertedWith('name cannot be empty');
     });
 
     it('cannot add product with 0 quantity', async () => {
       await expect(store.addProduct('chainsaw', ethers.utils.parseEther('0.1'), 0))
-        .revertedWith('quantity 0');
+        .revertedWith('quantity cannot be 0');
     });
 
     it('cannot add product with 0 price', async () => {
       await expect(store.addProduct('chainsaw', ethers.utils.parseEther('0'), 1))
-        .revertedWith('price 0');
+        .revertedWith('price cannot be 0');
     });
 
     it('cannot add same product twice', async () => {
@@ -125,6 +125,10 @@ describe('Store', () => {
 
   describe('availableProducts', () => {
     it('only available product ids are returned', async () => {
+
+    });
+
+    it('already bought product ids are not returned', async () => {
 
     });
   });

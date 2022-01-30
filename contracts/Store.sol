@@ -11,7 +11,7 @@ interface IStore {
   function returnProduct(uint _id) external;
 
   function availableProducts() external view returns (uint[] memory);
-  function getProduct(uint _id) external view returns (string memory _name, uint _quantity, uint _price, bool _available);
+  function getProduct(uint _id) external view returns (string memory _name, uint _quantity, uint _price);
 
   event AddProduct(uint indexed _id, string _name, uint _price, uint _quantity);
   event SetProductQuantity(uint indexed _id, uint _quantity);
@@ -20,8 +20,41 @@ interface IStore {
 }
 
 contract Store is Ownable {
+  struct Product {
+    string name;
+    uint price;
+    uint quantity;
+  }
+
+  uint private nextId;
+  mapping(string => bool) private productExists;
+  mapping(uint => Product) private products;
+
+
+  event AddProduct(uint indexed _id, string _name, uint _price, uint _quantity);
+  event SetProductQuantity(uint indexed _id, uint _quantity);
+  event BuyProduct(uint indexed _id, address _buyer);
+  event ReturnProduct(uint indexed _id, address _buyer);
+
   function addProduct(string memory _name, uint _price, uint _quantity)
-    external onlyOwner {}
+    external
+    onlyOwner
+  {
+    require(bytes(_name).length > 0, "name cannot be empty");
+    require(_price > 0, "price cannot be 0");
+    require(_quantity > 0, "quantity cannot be 0");
+    require(!productExists[_name], "product already added");
+
+    productExists[_name] = true;
+
+    uint id = nextId++;
+    Product storage product = products[id];
+    product.name = _name;
+    product.price = _price;
+    product.quantity = _quantity;
+
+    emit AddProduct(id, _name, _price, _quantity);
+  }
 
   function setProductQuantity(uint _id, uint _quantity) external {}
 
@@ -31,7 +64,17 @@ contract Store is Ownable {
   function availableProducts() external view returns (uint[] memory) {
     return new uint[](1);
   }
-  function getProduct(uint _id) external view returns (string memory _name, uint _quantity, uint _price, bool _available) {
-    return ("test", 3, 1, true);
+
+  function getProduct(uint _id)
+    external
+    view
+    returns (string memory _name, uint _quantity, uint _price)
+  {
+    require(_id < nextId, "product does not exist");
+
+    Product memory product = products[_id];
+    _name = product.name;
+    _quantity = product.quantity;
+    _price = product.price;
   }
 }
