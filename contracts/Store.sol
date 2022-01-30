@@ -21,15 +21,13 @@ interface IStore {
 
 contract Store is Ownable {
   struct Product {
-    string name;
     uint price;
     uint quantity;
   }
 
-  uint private nextId;
-  mapping(string => bool) private productExists;
+  string[] private productNames;
+  mapping(string => bool) private productNameExists;
   mapping(uint => Product) private products;
-
 
   event AddProduct(uint indexed _id, string _name, uint _price, uint _quantity);
   event SetProductQuantity(uint indexed _id, uint _quantity);
@@ -43,15 +41,16 @@ contract Store is Ownable {
     require(bytes(_name).length > 0, "name cannot be empty");
     require(_price > 0, "price cannot be 0");
     require(_quantity > 0, "quantity cannot be 0");
-    require(!productExists[_name], "product already added");
+    require(!productNameExists[_name], "product already added");
 
-    productExists[_name] = true;
+    productNameExists[_name] = true;
 
-    uint id = nextId++;
+    uint id = productNames.length;
     Product storage product = products[id];
-    product.name = _name;
     product.price = _price;
     product.quantity = _quantity;
+
+    productNames.push(_name);
 
     emit AddProduct(id, _name, _price, _quantity);
   }
@@ -70,10 +69,10 @@ contract Store is Ownable {
     view
     returns (string memory _name, uint _quantity, uint _price)
   {
-    require(_id < nextId, "product does not exist");
+    require(_id < productNames.length, "product does not exist");
 
     Product memory product = products[_id];
-    _name = product.name;
+    _name = productNames[_id];
     _quantity = product.quantity;
     _price = product.price;
   }
