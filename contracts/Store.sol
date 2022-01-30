@@ -34,6 +34,11 @@ contract Store is Ownable {
   event BuyProduct(uint indexed _id, address _buyer);
   event ReturnProduct(uint indexed _id, address _buyer);
 
+  modifier productExists(uint _id) {
+    require(_id < productNames.length, "product does not exist");
+    _;
+  }
+
   function addProduct(string memory _name, uint _price, uint _quantity)
     external
     onlyOwner
@@ -55,7 +60,14 @@ contract Store is Ownable {
     emit AddProduct(id, _name, _price, _quantity);
   }
 
-  function setProductQuantity(uint _id, uint _quantity) external {}
+  function setProductQuantity(uint _id, uint _quantity)
+    external
+    onlyOwner
+    productExists(_id)
+  {
+    products[_id].quantity = _quantity;
+    emit SetProductQuantity(_id, _quantity);
+  }
 
   function buyProduct(uint _id) external payable {}
   function returnProduct(uint _id) external {}
@@ -67,10 +79,9 @@ contract Store is Ownable {
   function getProduct(uint _id)
     external
     view
+    productExists(_id)
     returns (string memory _name, uint _quantity, uint _price)
   {
-    require(_id < productNames.length, "product does not exist");
-
     Product memory product = products[_id];
     _name = productNames[_id];
     _quantity = product.quantity;
