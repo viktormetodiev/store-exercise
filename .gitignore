@@ -132,3 +132,4 @@ dist
 # Hardhat
 cache
 artifacts
+typechain-types

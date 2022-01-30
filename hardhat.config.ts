@@ -1,7 +1,10 @@
+import '@typechain/hardhat';
+import '@nomiclabs/hardhat-ethers';
+import '@nomiclabs/hardhat-waffle';
+
 import * as dotenv from 'dotenv';
 
 import { HardhatUserConfig, task } from 'hardhat/config';
-import '@nomiclabs/hardhat-waffle';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 dotenv.config();
