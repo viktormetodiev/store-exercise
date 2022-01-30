@@ -28,7 +28,7 @@ contract Store is Ownable {
   string[] private productNames;
   mapping(string => bool) private productNameExists;
   mapping(uint => Product) private products;
-  mapping(uint => mapping(address => bool)) productPurchased;
+  mapping(uint => mapping(address => bool)) private productPurchased;
 
   event AddProduct(uint indexed _id, string _name, uint _price, uint _quantity);
   event SetProductQuantity(uint indexed _id, uint _quantity);
