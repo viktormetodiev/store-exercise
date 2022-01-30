@@ -1,0 +1,35 @@
+name: Store
+
+on:
+  push:
+    branches: [ '**' ]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - uses: actions/cache@v2
+      with:
+        path: '**/node_modules'
+        key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+    - run: yarn --frozen-lockfile
+
+    - name: Lint
+      run: yarn lint
+
+    - name: Compile contract
+      run: npx hardhat compile
+
+    - name: Test  
+      run: yarn test
