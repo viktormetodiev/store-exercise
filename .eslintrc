@@ -1,4 +1,9 @@
 {
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "@typescript-eslint",
+        "import"
+    ],
     "env": {
         "browser": true,
         "commonjs": true,
@@ -6,10 +11,12 @@
         "jest": true
     },
     "extends": [
-        "airbnb-base"
+        "airbnb-typescript/base",
+        "plugin:import/recommended"
     ],
     "parserOptions": {
-        "ecmaVersion": "latest"
+        "ecmaVersion": "latest",
+        "project": "./tsconfig.json"
     },
     "rules": {
         "import/no-extraneous-dependencies": "off",
