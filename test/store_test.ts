@@ -126,7 +126,7 @@ describe('Store', () => {
 
       const details = await store.getProduct(id);
       expect(details._quantity).to.equal(0);
-      expect(store.provider.getBalance(store.address)).equal(price);
+      expect(await store.provider.getBalance(store.address)).equal(price);
     });
 
     it('cannot buy product if product does not exist', async () => {
@@ -140,7 +140,7 @@ describe('Store', () => {
       await store.addProduct('scissors', ethers.utils.parseEther('0.1'), 1);
 
       await expect(store.buyProduct(id, { value: ethers.utils.parseEther('1') }))
-        .revertedWith('amount sent must equal product price');
+        .revertedWith('sent not equal to product price');
     });
 
     it('cannot buy product if msg.value < price', async () => {
@@ -149,7 +149,7 @@ describe('Store', () => {
       await store.addProduct('scissors', ethers.utils.parseEther('0.1'), 1);
 
       await expect(store.buyProduct(id, { value: ethers.utils.parseEther('0.01') }))
-        .revertedWith('amount sent must equal product price');
+        .revertedWith('sent not equal to product price');
     });
 
     it('cannot buy same product twice', async () => {
@@ -181,7 +181,7 @@ describe('Store', () => {
       await store.addProduct('scissors', price, 1);
       await expect(store.buyProduct(id, { value: price }))
         .emit(store, 'BuyProduct')
-        .withArgs(id, price);
+        .withArgs(id, owner.address);
     });
   });
 

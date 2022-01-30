@@ -28,6 +28,7 @@ contract Store is Ownable {
   string[] private productNames;
   mapping(string => bool) private productNameExists;
   mapping(uint => Product) private products;
+  mapping(uint => mapping(address => bool)) productPurchased;
 
   event AddProduct(uint indexed _id, string _name, uint _price, uint _quantity);
   event SetProductQuantity(uint indexed _id, uint _quantity);
@@ -69,8 +70,23 @@ contract Store is Ownable {
     emit SetProductQuantity(_id, _quantity);
   }
 
-  function buyProduct(uint _id) external payable {}
-  
+  function buyProduct(uint _id)
+    external
+    payable
+    productExists(_id)
+  {
+    Product memory product = products[_id];
+
+    require(product.quantity > 0, "product out of stock");
+    require(product.price == msg.value, "sent not equal to product price");
+    require(!productPurchased[_id][msg.sender], "product already bought");
+
+    products[_id].quantity -= 1;
+    productPurchased[_id][msg.sender] = true;
+
+    emit BuyProduct(_id, msg.sender);
+  }
+
   function returnProduct(uint _id) external {}
 
   function availableProducts() external view returns (uint[] memory) {
