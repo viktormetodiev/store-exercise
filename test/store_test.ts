@@ -29,6 +29,8 @@ describe('Store', () => {
       await store.addProduct('scissors', ethers.utils.parseEther('0.1'), 3);
 
       const details = await store.getProduct(0);
+      expect(details._name).to.equal('scissors');
+      expect(details._price).to.equal(ethers.utils.parseEther('0.1'));
       expect(details._quantity).to.equal(3);
     });
 
@@ -135,11 +137,16 @@ describe('Store', () => {
 
   describe('getProduct', () => {
     it('returns product details', async () => {
+      await store.addProduct('scissors', ethers.utils.parseEther('0.1'), 3);
 
+      const details = await store.getProduct(0);
+      expect(details._name).to.equal('scissors');
+      expect(details._price).to.equal(ethers.utils.parseEther('0.1'));
+      expect(details._quantity).to.equal(3);
     });
 
-    it('cannot return non-existent products', async () => {
-
+    it('reverts for non-existent product', async () => {
+      await expect(store.getProduct(0)).revertedWith('product does not exist');
     });
   });
 });
