@@ -8,7 +8,7 @@ async function main() {
 
   await store.deployed();
 
-  console.log('Store deployed to:', store.address);
+  console.log('Store deployed to:', store.address);//
 }
 
 main()
