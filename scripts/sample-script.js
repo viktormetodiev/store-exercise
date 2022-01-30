@@ -3,12 +3,12 @@ const hre = require('hardhat');
 async function main() {
   await hre.run('compile');
 
-  const Greeter = await hre.ethers.getContractFactory('Greeter');
-  const greeter = await Greeter.deploy('Hello, Hardhat!');
+  const Store = await hre.ethers.getContractFactory('Store');
+  const store = await Store.deploy();
 
-  await greeter.deployed();
+  await store.deployed();
 
-  console.log('Greeter deployed to:', greeter.address);
+  console.log('Store deployed to:', store.address);
 }
 
 main()
